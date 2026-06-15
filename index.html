@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 0; overflow: hidden; }
+    @keyframes float  { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-14px) rotate(4deg)} }
+    @keyframes floatB { 0%,100%{transform:translateY(0)} 45%{transform:translateY(-18px)} }
+    @keyframes slideUp { from{opacity:0;transform:translateY(32px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes glowBtn { 0%,100%{box-shadow:0 8px 28px rgba(30,58,95,.5)} 50%{box-shadow:0 14px 52px rgba(30,58,95,.85),0 0 70px rgba(74,144,194,.35)} }
+    @keyframes spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+    @keyframes barPulse { 0%,100%{opacity:1} 50%{opacity:.65} }
+    #diaestra-canvas { touch-action: none; display: block; }
+    .nav-btn:hover { background: rgba(255,255,255,.22) !important; transform: scale(1.1) !important; }
+    .ctrl-btn:hover { transform: scale(1.05) !important; box-shadow: 0 12px 36px rgba(30,58,95,.7) !important; }
+    .back-btn:hover { background: rgba(255,255,255,.22) !important; }
+    .close-btn:hover { background: rgba(255,80,80,.25) !important; }
+    .panel-side-btn:hover { background: rgba(74,144,194,.25) !important; }
+  </style>
+</helmet>
+
+<div style="position:fixed;inset:0;font-family:'Plus Jakarta Sans',sans-serif;">
+
+  <!-- ============ LANDING ============ -->
+  <div id="land" style="position:absolute;inset:0;z-index:10;overflow:hidden;">
+
+    <!-- Background sky-to-grass -->
+    <div style="position:absolute;inset:0;background:linear-gradient(180deg,#87CEEB 0%,#B0DFF5 28%,#CCF0A0 62%,#7BBF40 100%);"></div>
+
+    <!-- Blob accents -->
+    <div style="position:absolute;top:-70px;right:-70px;width:300px;height:300px;background:radial-gradient(circle,rgba(255,255,255,.28) 0%,transparent 70%);border-radius:50%;pointer-events:none;"></div>
+    <div style="position:absolute;bottom:18%;left:-45px;width:190px;height:190px;background:radial-gradient(circle,rgba(255,255,255,.18) 0%,transparent 70%);border-radius:50%;pointer-events:none;"></div>
+
+
+    <!-- Institution badge -->
+    <div style="position:absolute;top:18px;left:20px;display:flex;align-items:center;gap:10px;animation:slideUp .8s ease .2s both;">
+      <div style="width:42px;height:42px;background:rgba(255,255,255,.92);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(0,0,0,.14);overflow:hidden;">
+        <img src="uploads/univ_sriwijaya.png" style="width:38px;height:38px;object-fit:contain;" alt="Logo Unsri">
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:800;color:#1E3A5F;letter-spacing:.6px;text-transform:uppercase;">Universitas Sriwijaya</div>
+        <div style="font-size:9px;font-weight:600;color:#2E5984;letter-spacing:.3px;">Fakultas Kedokteran · Keperawatan</div>
+      </div>
+    </div>
+
+    <!-- Hero center -->
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-52%);text-align:center;width:86%;max-width:470px;">
+
+      <!-- Titles -->
+      <div style="animation:slideUp .8s ease .4s both;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:4px;color:#1E3A5F;text-transform:uppercase;opacity:.78;margin-bottom:5px;">Diabetes E-Smart Box</div>
+        <div style="font-size:52px;font-weight:900;color:#1E3A5F;line-height:1;letter-spacing:-2px;text-shadow:2px 3px 0 rgba(255,255,255,.55);">DIAESTRA</div>
+        <div style="font-size:13px;font-weight:500;color:#2E5984;margin-top:7px;letter-spacing:.2px;">Media Edukasi Interaktif untuk Remaja</div>
+      </div>
+
+      <!-- Description -->
+      <div style="animation:slideUp .8s ease .6s both;margin-top:18px;">
+        <div style="background:rgba(255,255,255,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:14px;padding:14px 20px;border:1px solid rgba(255,255,255,.9);font-size:13px;color:#2E4A70;line-height:1.65;text-align:left;">
+          Platform edukasi kesehatan <strong>Diabetes Melitus</strong> dalam format 3D interaktif. Buka box untuk menjelajahi <strong>8 topik edukasi</strong> lengkap.
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div style="animation:slideUp .8s ease .8s both;margin-top:24px;">
+        <button onClick="{{ onViewDiaestra }}" style="background:linear-gradient(135deg,#1E3A5F,#2E5984);color:white;border:none;padding:16px 44px;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:.3px;animation:glowBtn 2.5s ease-in-out infinite;display:inline-flex;align-items:center;gap:10px;transition:transform .15s;">
+          <span>View DIAESTRA</span>
+        </button>
+      </div>
+
+      <!-- Credit -->
+      <div style="animation:slideUp .8s ease 1s both;margin-top:13px;font-size:11px;color:rgba(30,58,95,.62);font-weight:500;">
+        Disusun oleh: <strong>Aisyah Azzahrah</strong> · Program Studi Ilmu Keperawatan, Unsri 2026
+      </div>
+    </div>
+
+    <!-- Ground strip -->
+    <div style="position:absolute;bottom:0;left:0;right:0;height:72px;background:linear-gradient(180deg,transparent,rgba(100,170,50,.5) 55%,#6BAA32 100%);pointer-events:none;"></div>
+  </div>
+
+  <!-- ============ VIEWER ============ -->
+  <div id="viewer" style="position:absolute;inset:0;z-index:5;opacity:0;display:none;">
+
+    <canvas id="diaestra-canvas" style="width:100%;height:100%;"></canvas>
+
+    <!-- Loading screen -->
+    <div id="load-screen" style="position:absolute;inset:0;background:#0d1b2a;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;">
+      <div style="color:white;font-size:18px;font-weight:700;letter-spacing:.4px;">Memuat DIAESTRA...</div>
+      <div style="color:rgba(255,255,255,.45);font-size:12px;">Menyiapkan E-Smart Box 3D</div>
+      <div style="width:220px;height:5px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;margin-top:6px;">
+        <div id="load-bar" style="height:100%;background:linear-gradient(90deg,#4A90C2,#C8A96E);border-radius:4px;width:0%;transition:width .25s ease;animation:barPulse 1.4s ease-in-out infinite;"></div>
+      </div>
+    </div>
+
+    <!-- Top bar -->
+    <div style="position:absolute;top:0;left:0;right:0;z-index:20;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(10,20,38,.88) 0%,transparent 100%);pointer-events:none;">
+      <button onClick="{{ onBack }}" class="back-btn" style="pointer-events:all;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:white;padding:8px 18px;border-radius:22px;font-size:12px;font-weight:600;cursor:pointer;backdrop-filter:blur(8px);font-family:'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;gap:6px;transition:background .18s;">← Kembali</button>
+      <div style="text-align:center;">
+        <div style="color:white;font-size:19px;font-weight:800;letter-spacing:-.5px;text-shadow:0 2px 8px rgba(0,0,0,.5);">DIAESTRA</div>
+        <div style="color:rgba(255,255,255,.5);font-size:9px;font-weight:700;letter-spacing:2.5px;">E-SMART BOX 3D INTERAKTIF</div>
+      </div>
+      <div style="width:90px;"></div>
+    </div>
+
+
+
+    <!-- Side navigation panel -->
+    <div id="nav-panel" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);z-index:20;display:none;flex-direction:column;gap:6px;">
+      <div style="color:rgba(255,255,255,.45);font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding-left:4px;">Sisi Luar</div>
+      <button onClick="{{ onNavFront }}" class="panel-side-btn" style="background:rgba(30,58,95,.75);border:1px solid rgba(74,144,194,.35);color:white;padding:8px 12px;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;text-align:left;transition:background .15s;white-space:nowrap;">Cover</button>
+      <button onClick="{{ onNavLeft }}" class="panel-side-btn" style="background:rgba(30,58,95,.75);border:1px solid rgba(74,144,194,.35);color:white;padding:8px 12px;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;text-align:left;transition:background .15s;white-space:nowrap;">Pengertian &amp; Jenis</button>
+      <button onClick="{{ onNavBack }}" class="panel-side-btn" style="background:rgba(30,58,95,.75);border:1px solid rgba(74,144,194,.35);color:white;padding:8px 12px;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;text-align:left;transition:background .15s;white-space:nowrap;">Penyebab</button>
+      <button onClick="{{ onNavRight }}" class="panel-side-btn" style="background:rgba(30,58,95,.75);border:1px solid rgba(74,144,194,.35);color:white;padding:8px 12px;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;text-align:left;transition:background .15s;white-space:nowrap;">Faktor Risiko</button>
+      <div style="color:rgba(255,255,255,.45);font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding-left:4px;margin-top:6px;">Sisi Dalam</div>
+      <button onClick="{{ onNavIL }}" class="panel-side-btn" style="background:rgba(74,144,194,.25);border:1px solid rgba(74,144,194,.5);color:white;padding:8px 12px;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;text-align:left;transition:background .15s;white-space:nowrap;">Tanda &amp; Gejala</button>
+      <button onClick="{{ onNavIM }}" class="panel-side-btn" style="background:rgba(74,144,194,.25);border:1px solid rgba(74,144,194,.5);color:white;padding:8px 12px;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;text-align:left;transition:background .15s;white-space:nowrap;">Komplikasi</button>
+      <button onClick="{{ onNavIR }}" class="panel-side-btn" style="background:rgba(74,144,194,.25);border:1px solid rgba(74,144,194,.5);color:white;padding:8px 12px;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;text-align:left;transition:background .15s;white-space:nowrap;">Pencegahan</button>
+      <button onClick="{{ onNavIF }}" class="panel-side-btn" style="background:rgba(74,144,194,.25);border:1px solid rgba(74,144,194,.5);color:white;padding:8px 12px;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;text-align:left;transition:background .15s;white-space:nowrap;">Video Edukasi</button>
+    </div>
+
+    <!-- Bottom controls -->
+    <div style="position:absolute;bottom:22px;left:50%;transform:translateX(-50%);z-index:20;display:flex;flex-direction:column;align-items:center;gap:10px;">
+      <div style="display:flex;gap:18px;color:rgba(255,255,255,.4);font-size:11px;font-weight:500;">
+        <span>Drag putar</span>
+        <span>Scroll zoom</span>
+        <span>Klik sisi detail</span>
+      </div>
+      <button onClick="{{ onToggleBox }}" class="ctrl-btn" style="background:linear-gradient(135deg,#1E3A5F,#4A90C2);color:white;border:none;padding:13px 36px;border-radius:42px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;gap:10px;box-shadow:0 8px 26px rgba(30,58,95,.5);transition:transform .12s,box-shadow .15s;">
+        <span>{{ boxBtnLabel }}</span>
+      </button>
+    </div>
+
+
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+
+class Component extends DCLogic {
+  state = { boxOpened: false };
+  three = {};
+  boxMeshes = null;
+  _panel = null;
+  _selectedSide = null;
+  boxDims = { W: 2.4, H: 3.2, D: 2.4, T: 0.07 };
+  innerGroup = null;
+  particles = null;
+  _raf = null;
+  _onResize = null;
+
+  componentWillUnmount() {
+    if (this._raf) cancelAnimationFrame(this._raf);
+    if (this._onResize) window.removeEventListener('resize', this._onResize);
+    if (this.three.renderer) this.three.renderer.dispose();
+  }
+
+  enterViewer() {
+    const land = document.getElementById('land');
+    const viewer = document.getElementById('viewer');
+    if (!land || !viewer) return;
+    const gsap = window.gsap;
+    if (!gsap) { setTimeout(() => this.enterViewer(), 80); return; }
+    gsap.to(land, {
+      opacity: 0, duration: 0.5, ease: 'power2.in',
+      onComplete: () => {
+        land.style.display = 'none';
+        viewer.style.display = 'block';
+        gsap.to(viewer, { opacity: 1, duration: 0.6, ease: 'power2.out' });
+        this.initThree();
+      }
+    });
+  }
+
+  initThree() {
+    const THREE = window.THREE;
+    const canvas = document.getElementById('diaestra-canvas');
+    if (!THREE || !canvas) { setTimeout(() => this.initThree(), 80); return; }
+
+    const W = window.innerWidth, H = window.innerHeight;
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0d1b2a);
+
+    const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 100);
+    camera.position.set(0, 1.5, 9);
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setSize(W, H);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 0.95;
+
+    scene.add(new THREE.AmbientLight(0x6080AA, 0.45)); // lebih rendah = body box lebih kontras 3D
+    const sun = new THREE.DirectionalLight(0xffffff, 2.2);
+    sun.position.set(5, 8, 6); sun.castShadow = true;
+    sun.shadow.mapSize.set(1024, 1024); scene.add(sun);
+    const fill = new THREE.DirectionalLight(0x4A90C2, 0.7);
+    fill.position.set(-5, 2, -5); scene.add(fill);
+    const rim = new THREE.DirectionalLight(0xC8A96E, 0.45);
+    rim.position.set(0, -4, -6); scene.add(rim);
+
+    // Floor + glow
+    const floor = new THREE.Mesh(new THREE.CircleGeometry(14, 64),
+      new THREE.MeshStandardMaterial({ color: 0x080e1a, roughness: 1 }));
+    floor.rotation.x = -Math.PI / 2; floor.position.y = -2.8; floor.receiveShadow = true;
+    scene.add(floor);
+    const glow = new THREE.Mesh(new THREE.CircleGeometry(3.2, 48),
+      new THREE.MeshBasicMaterial({ color: 0x4A90C2, transparent: true, opacity: 0.12 }));
+    glow.rotation.x = -Math.PI / 2; glow.position.y = -2.78;
+    scene.add(glow);
+
+    this.addParticles(THREE, scene);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true; controls.dampingFactor = 0.06;
+    controls.enablePan = false; controls.minDistance = 4; controls.maxDistance = 15;
+    controls.minPolarAngle = 0; controls.maxPolarAngle = Math.PI; // bebas semua arah
+
+    this.three = { scene, camera, renderer, controls };
+    this.createBox(THREE);
+
+    controls.autoRotate = true; controls.autoRotateSpeed = 1.5;
+    setTimeout(() => { controls.autoRotate = false; }, 8500);
+
+    const animate = () => {
+      this._raf = requestAnimationFrame(animate);
+      controls.update();
+      if (this.particles) this.particles.rotation.y += 0.0003;
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    this._onResize = () => {
+      const W = window.innerWidth, H = window.innerHeight;
+      camera.aspect = W / H; camera.updateProjectionMatrix();
+      renderer.setSize(W, H);
+    };
+    window.addEventListener('resize', this._onResize);
+    this.setupRaycast(THREE, camera, canvas);
+    this.setupEscKey();
+    this.createContentPanel(document.getElementById('viewer'));
+    this.animateLoadBar();
+  }
+
+  addParticles(THREE, scene) {
+    const n = 160;
+    const pos = new Float32Array(n * 3);
+    for (let i = 0; i < n * 3; i++) pos[i] = (Math.random() - 0.5) * 30;
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const mat = new THREE.PointsMaterial({ color: 0x4A90C2, size: 0.055, transparent: true, opacity: 0.42 });
+    this.particles = new THREE.Points(geo, mat);
+    scene.add(this.particles);
+  }
+
+  createBox(THREE) {
+    const { scene } = this.three;
+    const { W, H, D, T } = this.boxDims;
+    const loader = new THREE.TextureLoader();
+
+    const solidMat = (hex) => new THREE.MeshStandardMaterial({
+      color: new THREE.Color(hex), roughness: 0.45, metalness: 0.35
+    });
+    const texMat = (path) => {
+      const tex = loader.load(path);
+      tex.encoding = THREE.sRGBEncoding;
+      // MeshBasicMaterial = tampilkan tekstur 100% tanpa pengaruh cahaya → warna konten tepat & tajam
+      return new THREE.MeshBasicMaterial({ map: tex });
+    };
+
+    const blue = solidMat('#1E3A5F');
+    const rim = solidMat('#2A4E78');
+
+    // Floor (static) — biru polos
+    const bottom = new THREE.Mesh(new THREE.BoxGeometry(W, T, D), blue);
+    bottom.position.set(0, -H / 2, 0);
+    bottom.castShadow = true; bottom.receiveShadow = true; scene.add(bottom);
+
+    // BACK WALL + LID — engsel di tepi bawah-belakang, terbuka ke belakang duluan
+    const backPivot = new THREE.Group();
+    backPivot.position.set(0, -H / 2, -D / 2);
+    scene.add(backPivot);
+    const back = new THREE.Mesh(new THREE.BoxGeometry(W, H, T),
+      [rim, rim, rim, rim, texMat('uploads/design_smartbox_8.png'), texMat('uploads/design_smartbox_5.png')]);
+    back.position.set(0, H / 2, 0); back.castShadow = true;
+    back.userData.faceMap = { 4: 'inner-mid', 5: 'back' }; // dalam=Komplikasi(8), luar=Penyebab(5)
+    backPivot.add(back);
+    const lidMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color('#1E3A5F'), roughness: 0.45, metalness: 0.35,
+      polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4
+    });
+    const lid = new THREE.Mesh(new THREE.BoxGeometry(W + T, T, D + T), lidMat);
+    lid.position.set(0, H + T / 2, D / 2); lid.castShadow = true;
+    backPivot.add(lid);
+
+    // FRONT WALL — engsel di tepi bawah-depan
+    const frontPivot = new THREE.Group();
+    frontPivot.position.set(0, -H / 2, D / 2);
+    scene.add(frontPivot);
+    const front = new THREE.Mesh(new THREE.BoxGeometry(W, H, T),
+      [rim, rim, rim, rim, texMat('uploads/design_smartbox_2.png'), texMat('uploads/design_smartbox_4.png')]);
+    front.position.set(0, H / 2, 0); front.castShadow = true;
+    front.userData.faceMap = { 4: 'front', 5: 'inner-front' }; // luar=Cover(2), dalam=Video(4)
+    frontPivot.add(front);
+
+    // LEFT WALL — engsel di tepi bawah-kiri. dalam mat[0]=Gejala(7), luar mat[1]=Pengertian(3)
+    const leftPivot = new THREE.Group();
+    leftPivot.position.set(-W / 2, -H / 2, 0);
+    scene.add(leftPivot);
+    const left = new THREE.Mesh(new THREE.BoxGeometry(T, H, D),
+      [texMat('uploads/design_smartbox_7.png'), texMat('uploads/design_smartbox_3.png'), rim, rim, rim, rim]);
+    left.position.set(0, H / 2, 0); left.castShadow = true;
+    left.userData.faceMap = { 0: 'inner-left', 1: 'left' };
+    leftPivot.add(left);
+
+    // RIGHT WALL — engsel di tepi bawah-kanan. luar mat[0]=Faktor(6), dalam mat[1]=Pencegahan(9)
+    const rightPivot = new THREE.Group();
+    rightPivot.position.set(W / 2, -H / 2, 0);
+    scene.add(rightPivot);
+    const right = new THREE.Mesh(new THREE.BoxGeometry(T, H, D),
+      [texMat('uploads/design_smartbox_6.png'), texMat('uploads/design_smartbox_9.png'), rim, rim, rim, rim]);
+    right.position.set(0, H / 2, 0); right.castShadow = true;
+    right.userData.faceMap = { 0: 'right', 1: 'inner-right' };
+    rightPivot.add(right);
+
+    this.boxMeshes = { bottom, back, front, left, right };
+    this.boxPivots = { frontPivot, backPivot, leftPivot, rightPivot };
+
+    // Click planes transparan — target klik reliabel untuk 4 konten dalam box
+    const mkPlane = (sideId, w, h, ry) => {
+      const p = new THREE.Mesh(
+        new THREE.PlaneGeometry(w * 0.9, h * 0.9),
+        new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, side: THREE.DoubleSide })
+      );
+      p.position.set(0, H / 2, 0); // di tengah wall, sejajar dengan mesh dinding
+      if (ry) p.rotation.y = ry;
+      p.userData.sideId = sideId;
+      return p;
+    };
+    const cpFront = mkPlane('inner-front', W, H, 0);       frontPivot.add(cpFront);
+    const cpBack  = mkPlane('inner-mid',   W, H, Math.PI); backPivot.add(cpBack);
+    const cpLeft  = mkPlane('inner-left',  D, H, -Math.PI / 2); leftPivot.add(cpLeft);
+    const cpRight = mkPlane('inner-right', D, H,  Math.PI / 2); rightPivot.add(cpRight);
+    this.clickPlanes = [cpFront, cpBack, cpLeft, cpRight];
+  }
+
+  animateLoadBar() {
+    const bar = document.getElementById('load-bar');
+    if (!bar) return;
+    let p = 0;
+    const iv = setInterval(() => {
+      p += 7 + Math.random() * 14;
+      bar.style.width = Math.min(p, 91) + '%';
+      if (p >= 91) clearInterval(iv);
+    }, 120);
+    setTimeout(() => {
+      bar.style.width = '100%';
+      setTimeout(() => {
+        const el = document.getElementById('load-screen');
+        if (el) {
+          el.style.transition = 'opacity .5s';
+          el.style.opacity = '0';
+          setTimeout(() => { el.style.display = 'none'; }, 500);
+        }
+      }, 380);
+    }, 1650);
+  }
+
+  setupRaycast(THREE, camera, canvas) {
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    let downXY = null;
+
+    const check = (cx, cy) => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = ((cx - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((cy - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+      if (this.three.scene) this.three.scene.updateMatrixWorld(true);
+      const targets = Object.values(this.boxMeshes || {}).concat(this.clickPlanes || []);
+      const hits = raycaster.intersectObjects(targets, false);
+      if (!hits.length) return;
+      // Box tertutup: klik mana pun membuka box
+      if (!this.state.boxOpened) { this.openBox(); return; }
+      // Box terbuka: iterasi semua hit, skip mesh tanpa sideId (bottom, lid, dll)
+      let sid = null;
+      for (const hit of hits) {
+        sid = hit.object.userData.sideId;
+        if (!sid && hit.object.userData.faceMap) {
+          const mi = hit.face ? hit.face.materialIndex : null;
+          sid = mi != null ? hit.object.userData.faceMap[mi] : null;
+        }
+        if (sid) break;
+      }
+      if (sid) this.selectSide(sid);
+    };
+
+    canvas.addEventListener('mousedown', e => { downXY = { x: e.clientX, y: e.clientY }; });
+    canvas.addEventListener('mouseup', e => {
+      if (!downXY) return;
+      const d = Math.hypot(e.clientX - downXY.x, e.clientY - downXY.y);
+      const xy = downXY; downXY = null;
+      if (d > 6) return;
+      check(xy.x, xy.y);
+    });
+    canvas.addEventListener('touchstart', e => {
+      const t = e.touches[0]; downXY = { x: t.clientX, y: t.clientY };
+    }, { passive: true });
+    canvas.addEventListener('touchend', e => {
+      if (!downXY) return;
+      const t = e.changedTouches[0];
+      const d = Math.hypot(t.clientX - downXY.x, t.clientY - downXY.y);
+      const xy = downXY; downXY = null;
+      if (d > 10) return;
+      check(xy.x, xy.y);
+    }, { passive: true });
+  }
+
+  openBox() {
+    if (this.state.boxOpened || !this.boxPivots) return;
+    this.setState({ boxOpened: true });
+    const gsap = window.gsap;
+    const { frontPivot, backPivot, leftPivot, rightPivot } = this.boxPivots;
+    const { camera, controls } = this.three;
+    const tl = gsap.timeline();
+
+    // Fase 1: Sisi BELAKANG + LID terbuka ke belakang duluan
+    tl.to(backPivot.rotation, { x: -Math.PI / 2, duration: 0.9, ease: 'power2.inOut' }, 0);
+
+    // Fase 2: Confetti muncul saat lid terbuka
+    tl.call(() => this.fireConfetti(), [], 0.55);
+
+    // Fase 3: Sisi DEPAN terlipat ke bawah-depan
+    tl.to(frontPivot.rotation, { x: Math.PI / 2, duration: 0.65, ease: 'power2.inOut' }, '+=0.06');
+
+    // Fase 4: Sisi KIRI & KANAN terbuka serentak ke samping
+    tl.to(leftPivot.rotation,  { z:  Math.PI / 2, duration: 0.65, ease: 'power2.inOut' }, '+=0.06');
+    tl.to(rightPivot.rotation, { z: -Math.PI / 2, duration: 0.65, ease: 'power2.inOut' }, '<');
+
+    // Fase 6: Kamera naik ke sudut atas — tampilkan semua 4 konten dalam sekaligus
+    tl.call(() => {
+      controls.enabled = false;
+      gsap.to(camera.position, {
+        x: 0, y: 8.5, z: 5.5, duration: 1.4, ease: 'power2.inOut',
+        onUpdate: () => camera.lookAt(0, -1.6, 0),
+        onComplete: () => {
+          controls.target.set(0, -1.6, 0);
+          controls.enabled = true;
+          const nav = document.getElementById('nav-panel');
+          if (nav) { nav.style.display = 'flex'; }
+        }
+      });
+    }, [], '+=0.05');
+  }
+
+  closeBox() {
+    if (!this.state.boxOpened || !this.boxPivots) return;
+    this.setState({ boxOpened: false });
+    const gsap = window.gsap;
+    const { camera, controls } = this.three;
+
+    // Kembalikan semua dinding ke posisi tertutup
+    Object.values(this.boxPivots).forEach(p => {
+      gsap.to(p.rotation, { x: 0, y: 0, z: 0, duration: 0.7, ease: 'power2.inOut' });
+    });
+
+    // Sembunyikan nav panel
+    const nav = document.getElementById('nav-panel');
+    if (nav) { nav.style.display = 'none'; }
+
+    // Kembalikan kamera ke posisi awal
+    controls.enabled = false;
+    gsap.to(camera.position, {
+      x: 0, y: 1.5, z: 9, duration: 1.0, ease: 'power2.inOut',
+      onUpdate: () => camera.lookAt(0, 0, 0),
+      onComplete: () => {
+        controls.target.set(0, 0, 0);
+        controls.enabled = true;
+      }
+    });
+  }
+
+  fadeInMats(children, dur) {
+    let start = null;
+    const step = (ts) => {
+      if (!start) start = ts;
+      const t = Math.min((ts - start) / (dur * 1000), 1);
+      children.forEach(c => { if (c.material) c.material.opacity = t; });
+      if (t < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  createContentPanel(viewer) {
+    const el = document.createElement('div');
+    el.style.cssText = 'position:absolute;inset:0;background:rgba(4,8,18,.94);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);z-index:30;opacity:0;pointer-events:none;transition:opacity .3s ease;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px;font-family:Plus Jakarta Sans,sans-serif;';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕';
+    closeBtn.style.cssText = 'position:absolute;top:20px;right:20px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:white;width:48px;height:48px;border-radius:50%;cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;transition:background .15s;font-family:inherit;';
+    closeBtn.addEventListener('click', () => this.closeContent());
+    closeBtn.addEventListener('mouseenter', () => { closeBtn.style.background = 'rgba(255,80,80,.25)'; });
+    closeBtn.addEventListener('mouseleave', () => { closeBtn.style.background = 'rgba(255,255,255,.12)'; });
+
+    const title = document.createElement('div');
+    title.style.cssText = 'color:white;font-size:16px;font-weight:700;margin-bottom:16px;text-align:center;opacity:.9;';
+
+    const img = document.createElement('img');
+    img.style.cssText = 'max-width:min(680px,90vw);max-height:80vh;border-radius:14px;box-shadow:0 20px 64px rgba(0,0,0,.7);display:none;object-fit:contain;';
+    img.alt = '';
+
+    const videoDiv = document.createElement('div');
+    videoDiv.style.cssText = 'display:none;width:min(800px,92vw);border-radius:14px;overflow:hidden;aspect-ratio:16/9;box-shadow:0 20px 64px rgba(0,0,0,.6);';
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;';
+    iframe.setAttribute('frameborder', '0');
+    iframe.setAttribute('allowfullscreen', '');
+    videoDiv.appendChild(iframe);
+
+    const desc = document.createElement('div');
+    desc.style.cssText = 'margin-top:14px;color:rgba(255,255,255,.6);font-size:12px;line-height:1.8;text-align:center;max-width:560px;';
+
+    const hint = document.createElement('div');
+    hint.style.cssText = 'position:absolute;bottom:22px;color:rgba(255,255,255,.28);font-size:11px;';
+    hint.textContent = 'Tekan ESC atau ✕ untuk kembali';
+
+    el.appendChild(closeBtn);
+    el.appendChild(title);
+    el.appendChild(img);
+    el.appendChild(videoDiv);
+    el.appendChild(desc);
+    el.appendChild(hint);
+    viewer.appendChild(el);
+
+    this._panel = { el, title, img, videoDiv, iframe, desc };
+  }
+
+  fireConfetti() {
+    if (!window.confetti) return;
+    window.confetti({ particleCount: 200, spread: 90, startVelocity: 42, origin: { x: 0.5, y: 0.38 }, colors: ['#1E3A5F', '#4A90C2', '#C8A96E', '#7BAFD4', '#ffffff', '#FFD700', '#87CEEB'] });
+  }
+
+  selectSide(id) {
+    const map = {
+      'front':       { label: 'Cover DIAESTRA', img: 'uploads/design_smartbox_2.png', desc: 'DIAESTRA — Diabetes E-Smart Box Untuk Remaja. Media edukasi interaktif tentang Diabetes Melitus. Universitas Sriwijaya, Fakultas Kedokteran, Program Studi Ilmu Keperawatan.' },
+      'left':        { label: 'Pengertian & Jenis DM', img: 'uploads/design_smartbox_3.png', desc: 'Diabetes melitus adalah gangguan metabolisme yang ditandai dengan peningkatan kadar glukosa dalam darah (hiperglikemia), akibat gangguan sekresi dan/atau kerja insulin. Jenis: DM Tipe 1, DM Tipe 2, Diabetes Gestasional, dan Tipe Lain.' },
+      'back':        { label: 'Penyebab DM', img: 'uploads/design_smartbox_5.png', desc: 'Penyebab: (1) Usia, (2) Ras/Etnis, (3) Gaya Hidup, (4) Pemakaian Obat Steroid, (5) Gangguan pada Pankreas, (6) Kehamilan, (7) Keturunan, (8) Stres.' },
+      'right':       { label: 'Faktor Risiko DM', img: 'uploads/design_smartbox_6.png', desc: 'Faktor risiko: Keturunan, Obesitas, Usia, Tekanan Darah Tinggi, Kurang Aktivitas Fisik, Kadar Kolesterol Tinggi, Stres, dan Riwayat Diabetes Saat Hamil (Gestasional).' },
+      'inner-left':  { label: 'Tanda & Gejala DM', img: 'uploads/design_smartbox_7.png', desc: 'Waspadai 9 gejala utama: (1) Poliuri – sering BAK, (2) Polidipsi – sering haus, (3) Polifagi – sering lapar, (4) Berat badan turun drastis, (5) Kelelahan, (6) Kesemutan, (7) Penglihatan kabur, (8) Kulit kering, (9) Luka sulit sembuh.' },
+      'inner-mid':   { label: 'Komplikasi Diabetes', img: 'uploads/design_smartbox_8.png', desc: 'Komplikasi Mikrovaskular: Kerusakan Saraf (Neuropati), Kerusakan Ginjal (Nefropati), Kerusakan Mata (Retinopati). Komplikasi Makrovaskular: Penyakit Jantung, Stroke, Gangguan Pembuluh Darah Perifer, Gangren & Ulkus Diabetikum, Amputasi.' },
+      'inner-right': { label: 'Cara Pencegahan DM', img: 'uploads/design_smartbox_9.png', desc: 'Pencegahan Primer: perubahan gaya hidup (diet seimbang, olahraga 150 mnt/minggu, berhenti merokok, tidur cukup, kelola stres). Pencegahan Sekunder: kontrol gula darah rutin. Pencegahan Tersier: rehabilitasi, edukasi berkelanjutan.' },
+      'inner-front': { label: 'Video Edukasi', video: 'https://www.youtube.com/embed/2xdVIW9VAL8', desc: 'Simak video edukasi lengkap tentang Diabetes Mellitus — gejala, penyebab, faktor risiko, dan cara pencegahannya.' }
+    };
+    const d = map[id]; if (!d) return;
+    const p = this._panel; if (!p) return;
+    p.title.textContent = d.label;
+    p.desc.textContent = d.desc;
+    if (d.video) {
+      p.img.style.display = 'none';
+      p.videoDiv.style.display = 'block';
+      p.iframe.src = d.video;
+    } else {
+      p.img.src = d.img; p.img.style.display = 'block';
+      p.videoDiv.style.display = 'none';
+      p.iframe.src = '';
+    }
+    p.el.style.opacity = '1';
+    p.el.style.pointerEvents = 'all';
+    this._selectedSide = id;
+  }
+
+  closeContent() {
+    const p = this._panel;
+    if (p) { p.el.style.opacity = '0'; p.el.style.pointerEvents = 'none'; p.iframe.src = ''; }
+    this._selectedSide = null;
+  }
+
+  setupEscKey() {
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this._selectedSide) this.closeContent();
+    });
+  }
+
+  goBack() {
+    const gsap = window.gsap;
+    const viewer = document.getElementById('viewer');
+    const land = document.getElementById('land');
+    if (this._raf) { cancelAnimationFrame(this._raf); this._raf = null; }
+    gsap.to(viewer, {
+      opacity: 0, duration: 0.4,
+      onComplete: () => {
+        viewer.style.display = 'none';
+        land.style.display = 'block'; land.style.opacity = '0';
+        gsap.to(land, { opacity: 1, duration: 0.5 });
+      }
+    });
+  }
+
+  renderVals() {
+    const sides = [
+      { label: 'Cover DIAESTRA', onClick: () => this.selectSide('front') },
+      { label: 'Pengertian & Jenis', onClick: () => this.selectSide('left') },
+      { label: 'Penyebab DM', onClick: () => this.selectSide('back') },
+      { label: 'Faktor Risiko', onClick: () => this.selectSide('right') },
+      { label: 'Tanda & Gejala', onClick: () => this.selectSide('inner-left') },
+      { label: 'Komplikasi', onClick: () => this.selectSide('inner-mid') },
+      { label: 'Pencegahan', onClick: () => this.selectSide('inner-right') },
+      { label: 'Video Edukasi', onClick: () => this.selectSide('inner-front') }
+    ];
+    return {
+      navItems: sides,
+      onViewDiaestra: () => this.enterViewer(),
+      onBack: () => this.goBack(),
+      onToggleBox: () => this.state.boxOpened ? this.closeBox() : this.openBox(),
+      boxBtnLabel: this.state.boxOpened ? 'Tutup Box' : 'Buka Box',
+      onNavFront: () => this.selectSide('front'),
+      onNavLeft:  () => this.selectSide('left'),
+      onNavBack:  () => this.selectSide('back'),
+      onNavRight: () => this.selectSide('right'),
+      onNavIL:    () => this.selectSide('inner-left'),
+      onNavIM:    () => this.selectSide('inner-mid'),
+      onNavIR:    () => this.selectSide('inner-right'),
+      onNavIF:    () => this.selectSide('inner-front')
+    };
+  }
+}
+
+</script>
+</body>
+</html>
